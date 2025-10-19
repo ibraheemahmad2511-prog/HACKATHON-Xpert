@@ -4,34 +4,76 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 import numpy as np
+from google import genai
 import os
 import re
 
 app = Flask(__name__)
 @app.route("/v1/chat/completions", methods=['POST'])
 def chat_completions():
+    # --- 1. Get Input and Context ---
     try:
-        data = request.get_json(silent=True)
-    except Exception:
-        data = {} 
+        data = request.get_json(force=True)
         
+        # NOTE: This assumes Chatbox sends the prompt as the last message in 'messages' list
+        # This will fail if your Streamlit app sends a different format, adjust if needed!
+        user_message = data.get('messages')[-1]['content']
+        
+        # --- IMPORTANT: Determine the Role ---
+        # The true way to get the role is from session state or the initial /diagnose request.
+        # For this test, we rely on the system message being the first in the list
+        role_message = data.get('messages')[0]['content']
+        user_role = "doctor" if "doctor" in role_message.lower() else "student"
+        
+    except Exception as e:
+        # Catch errors from missing data (e.g., during the initial Chatbox 'Check')
+        return jsonify({"choices": [{"message": {"role": "assistant", "content": f"ERROR: Invalid Request Format. {e}"}}}]), 400
+
+    # --- 2. Construct the Adaptive Prompt ---
+    if user_role == "student":
+        system_prompt = (
+            "You are Xpert, a friendly medical tutor AI. Explain findings simply and break down the diagnostic process."
+        )
+    else:
+        system_prompt = (
+            "You are Xpert, an expert radiologist AI assistant. Respond concisely using technical terminology."
+        )
+    
+    # Send the full system instruction with the user's latest message
+    full_prompt_messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message}
+    ]
+    
+    # --- 3. Call the LLM (Assuming LLM_CLIENT is globally initialized) ---
+    try:
+        # Call the Gemini API with the messages
+        response = LLM_CLIENT.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=full_prompt_messages
+        )
+        ai_response_text = response.text
+
+    except Exception as e:
+        print(f"LLM API Call Failed: {e}")
+        ai_response_text = f"LLM Integration Error: External AI failed to respond."
+
+    # --- 4. Format the Output for Chatbox (OpenAI Format) ---
     return jsonify({
-        "id": "chatcmpl-test",
+        "id": "chatcmpl-final",
         "object": "chat.completion",
-        "created": 12345678,
-        "model": "gpt-5-mini",
+        "model": 'gemini-2.5-flash',
         "choices": [
             {
                 "index": 0,
                 "message": {
                     "role": "assistant",
-                    "content": "API Ready. Connection Successful!",
+                    "content": ai_response_text,
                 },
                 "finish_reason": "stop",
             }
         ],
     })
-pass
 
 
 # ---------------------------
