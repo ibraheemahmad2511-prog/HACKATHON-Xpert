@@ -47,19 +47,19 @@ def chat_completions():
 
     # --- 2. Construct the Adaptive Prompt ---
     if user_role == "student":
-        system_prompt = (
-            "You are Xpert, a friendly medical tutor AI. Explain findings simply and break down the diagnostic process."
-        )
+        system_prompt = "You are Xpert, a friendly medical tutor AI. Explain findings simply and break down the diagnostic process."
+        
     else:
-        system_prompt = (
-            "You are Xpert, an expert radiologist AI assistant. Respond concisely using technical terminology."
-        )
+        system_prompt = "You are Xpert, an expert radiologist AI assistant. Respond concisely using technical terminology."
+        
     
     # Send the full system instruction with the user's latest message
     full_prompt_messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_message}
-    ]
+    {
+        "role": "user", # Using 'user' for system/instruction content in the first turn
+        "parts": [{"text": system_prompt + user_message}] # Concatenate system instruction and user input into one Part
+    }
+]
     
     # --- 3. Call the LLM (Assuming LLM_CLIENT is globally initialized) ---
     try:
