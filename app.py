@@ -64,13 +64,9 @@ def chat_completions():
     
     # --- 3. Call the LLM (Assuming LLM_CLIENT is globally initialized) ---
     try:
-        system_part = types.Part.from_text(system_prompt)
-        user_text_part = types.Part.from_text(user_message)
-        image_part = types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg')
-        contents_list = [
-        # The Gemini API expects parts to be combined in a list within a 'Content' object
-        types.Content(role="user", parts=[system_part, user_text_part, image_part]) 
-    ]
+        full_prompt_text = system_prompt + " " + user_message
+        contents_list = [types.Content(role="user", parts=[types.Part.from_text(full_prompt_text), types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg')])]
+
         if LLM_CLIENT is None:
             raise RuntimeError("LLM Client not initialized. Check API Key.")
             
