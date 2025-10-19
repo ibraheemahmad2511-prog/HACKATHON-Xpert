@@ -4,11 +4,28 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 import numpy as np
-from google.genai import Client
+import openai
 import os
 import re
 
 app = Flask(__name__)
+# ------------------- LLM Client Initialization -------------------
+LLM_CLIENT = None
+# Retrieve the secret API key from the terminal environment variable
+# CHANGE VARIABLE NAME:
+LLM_API_KEY = os.environ.get("OPENAI_API_KEY") 
+# CHANGE SERVICE NAME:
+LLM_MODEL = "gpt-3.5-turbo" # <-- Use a fast, stable model for the demo
+
+if LLM_API_KEY:
+    try:
+        # OpenAI doesn't use a client object for API calls; it sets the key globally
+        # However, we can keep the structure for future use
+        openai.api_key = LLM_API_KEY
+        print("LLM Client initialized successfully.")
+    except Exception as e:
+        print(f"WARNING: LLM Client failed to initialize: {e}")
+# -----------------------------------------------------------------
 @app.route("/v1/chat/completions", methods=['POST'])
 def chat_completions():
     # --- 1. Get Input and Context ---
@@ -47,16 +64,22 @@ def chat_completions():
     
     # --- 3. Call the LLM (Assuming LLM_CLIENT is globally initialized) ---
     try:
-        # Call the Gemini API with the messages
-        response = LLM_CLIENT.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=full_prompt_messages
-        )
-        ai_response_text = response.text
+    # Ensure key is set
+    if not openai.api_key:
+        raise RuntimeError("OpenAI API Key not set.")
 
-    except Exception as e:
-        print(f"LLM API Call Failed: {e}")
-        ai_response_text = f"LLM Integration Error: External AI failed to respond."
+    # Call the OpenAI API with the messages
+    response = openai.chat.completions.create(
+        model=LLM_MODEL,
+        messages=full_prompt_messages
+    )
+    # Extract the response text
+    ai_response_text = response.choices[0].message.content
+
+except Exception as e:
+    print(f"LLM API Call Failed: {e}")
+    # Return a generic message so the app doesn't crash
+    ai_response_text = f"LLM Integration Error: The external AI service failed to respond. Details: {e}"
 
     # --- 4. Format the Output for Chatbox (OpenAI Format) ---
     return jsonify({
