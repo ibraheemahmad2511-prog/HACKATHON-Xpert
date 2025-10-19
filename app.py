@@ -65,21 +65,21 @@ def chat_completions():
     # --- 3. Call the LLM (Assuming LLM_CLIENT is globally initialized) ---
     try:
     # Ensure key is set
-    if not openai.api_key:
-        raise RuntimeError("OpenAI API Key not set.")
+        if not openai.api_key:
+            raise RuntimeError("OpenAI API Key not set.")
 
-    # Call the OpenAI API with the messages
-    response = openai.chat.completions.create(
-        model=LLM_MODEL,
-        messages=full_prompt_messages
-    )
-    # Extract the response text
-    ai_response_text = response.choices[0].message.content
+        # Call the OpenAI API with the messages
+        response = openai.chat.completions.create(
+            model=LLM_MODEL,
+            messages=full_prompt_messages
+        )
+        # Extract the response text
+        ai_response_text = response.choices[0].message.content
 
-    except Exception as e:
-        print(f"LLM API Call Failed: {e}")
-    # Return a generic message so the app doesn't crash
-    ai_response_text = f"LLM Integration Error: The external AI service failed to respond. Details: {e}"
+        except Exception as e:
+            print(f"LLM API Call Failed: {e}")
+        # Return a generic message so the app doesn't crash
+        ai_response_text = f"LLM Integration Error: The external AI service failed to respond. Details: {e}"
 
     # --- 4. Format the Output for Chatbox (OpenAI Format) ---
     return jsonify({
