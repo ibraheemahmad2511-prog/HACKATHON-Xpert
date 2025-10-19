@@ -5,6 +5,7 @@ from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 import numpy as np
 from google.genai import Client as LLMClient
+from google.genai import types
 import os
 import re
 
@@ -63,13 +64,20 @@ def chat_completions():
     
     # --- 3. Call the LLM (Assuming LLM_CLIENT is globally initialized) ---
     try:
+        system_part = types.Part.from_text(system_prompt)
+        user_text_part = types.Part.from_text(user_message)
+        image_part = types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg')
+        contents_list = [
+        # The Gemini API expects parts to be combined in a list within a 'Content' object
+        types.Content(role="user", parts=[system_part, user_text_part, image_part]) 
+    ]
         if LLM_CLIENT is None:
             raise RuntimeError("LLM Client not initialized. Check API Key.")
             
         # Call the Gemini API with the messages
         response = LLM_CLIENT.models.generate_content(
             model=LLM_MODEL,
-            contents=full_prompt_messages
+            contents=contents_list
         )
         # Extract the response text
         ai_response_text = response.text # Gemini's response object structure
