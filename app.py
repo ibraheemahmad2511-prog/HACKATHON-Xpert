@@ -27,7 +27,7 @@ def chat_completions():
         
     except Exception as e:
         # Catch errors from missing data (e.g., during the initial Chatbox 'Check')
-        return jsonify({"choices": [{"message": {"role": "assistant", "content": f"ERROR: Invalid Request Format. {e}"}}}]), 400
+        return jsonify({"choices": [{"message": {"role": "assistant", "content": f"ERROR: Invalid Request Format. {e}"}}]}), 400
 
     # --- 2. Construct the Adaptive Prompt ---
     if user_role == "student":
