@@ -4,7 +4,7 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 import numpy as np
-from google import genai
+from google.genai import Client as LLMClient
 import os
 import re
 
@@ -20,7 +20,7 @@ LLM_MODEL = "gemini-2.5-flash" # <-- Use a fast, stable model for the demo
 if LLM_API_KEY:
     try:
         # Initialize the client object
-        LLM_CLIENT = genai.Client(api_key=LLM_API_KEY)
+        LLM_CLIENT = LLMClient(api_key=LLM_API_KEY)
         print("LLM Client initialized successfully.")
     except Exception as e:
         print(f"WARNING: LLM Client failed to initialize: {e}")
