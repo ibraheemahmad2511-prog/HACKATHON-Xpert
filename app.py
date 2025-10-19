@@ -74,8 +74,6 @@ def chat_completions():
         parts = [
         types.Part.from_text(full_prompt_text)
     ]
-        if image_bytes:
-            parts.append(types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg'))
         
         contents_list = [
         types.Content(role="user", parts=parts)
