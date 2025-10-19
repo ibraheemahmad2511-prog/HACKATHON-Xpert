@@ -63,9 +63,23 @@ def chat_completions():
 ]
     
     # --- 3. Call the LLM (Assuming LLM_CLIENT is globally initialized) ---
+    if LLM_CLIENT is None:
+    # If client is not initialized (e.g., key missing), raise error now.
+        return jsonify({
+        "choices": [{"message": {"role": "assistant", "content": "ERROR: LLM Client not initialized. Check API Key."}}]
+    }), 500
     try:
+        image_bytes = None
         full_prompt_text = system_prompt + " " + user_message
-        contents_list = [types.Content(role="user", parts=[types.Part.from_text(full_prompt_text), types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg')])]
+        parts = [
+        types.Part.from_text(full_prompt_text)
+    ]
+        if image_bytes:
+            parts.append(types.Part.from_bytes(data=image_bytes, mime_type='image/jpeg'))
+        
+        contents_list = [
+        types.Content(role="user", parts=parts)
+    ]
 
         if LLM_CLIENT is None:
             raise RuntimeError("LLM Client not initialized. Check API Key.")
