@@ -76,8 +76,8 @@ def chat_completions():
         # Extract the response text
         ai_response_text = response.choices[0].message.content
 
-        except Exception as e:
-            print(f"LLM API Call Failed: {e}")
+    except Exception as e:
+        print(f"LLM API Call Failed: {e}")
         # Return a generic message so the app doesn't crash
         ai_response_text = f"LLM Integration Error: The external AI service failed to respond. Details: {e}"
 
