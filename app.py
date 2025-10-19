@@ -4,7 +4,7 @@ from keras.models import load_model
 from keras.preprocessing import image
 from keras.applications.vgg16 import preprocess_input
 import numpy as np
-from google import genai
+from google.genai import Client
 import os
 import re
 
